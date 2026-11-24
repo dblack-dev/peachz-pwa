@@ -4,7 +4,7 @@
  * - Gemini API และ request ที่ไม่ใช่ GET: ผ่านเน็ตตรง ๆ ไม่แคช
  * เปลี่ยนเลข VERSION ทุกครั้งที่แก้ไฟล์ เพื่อให้ผู้ใช้ได้เวอร์ชันใหม่
  */
-const VERSION = 'v1.7.0';
+const VERSION = 'v1.7.1';
 const SHELL_CACHE = `peachz-shell-${VERSION}`;
 const RUNTIME_CACHE = `peachz-runtime-${VERSION}`;
 
