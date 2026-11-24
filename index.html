@@ -802,6 +802,10 @@
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 8 7 12 3 16"/><line x1="21" y1="12" x2="11" y2="12"/><line x1="21" y1="6" x2="11" y2="6"/><line x1="21" y1="18" x2="11" y2="18"/></svg>
                             <span>ย่อหน้า</span>
                         </button>
+                        <button id="btnStripCleanAi" type="button" title="ลบ ** ตัวเลขอ้างอิง [1] และแหล่งอ้างอิงที่ติดมาจาก AI ในคลิกเดียว (กด Undo ย้อนกลับได้)"
+                            class="px-2.5 py-1.5 rounded-xl bg-surface-variant hover:bg-accent-soft hover:text-accent text-xs font-semibold transition active:scale-95 flex items-center gap-1">
+                            <span>🧹 ล้างขยะ AI</span>
+                        </button>
                     </div>
 
                     <div class="flex items-center gap-1.5 shrink-0">
@@ -1283,6 +1287,17 @@
                     <div class="text-xs text-sub mt-0.5">แปลงคำพูดตรง "" เป็นโค้ง “”, แปลง ... เป็น …, แปลง -- เป็น — และลบช่องว่างเกิน</div>
                 </div>
             </button>
+
+            <button type="button" data-format-preset="strip-ai"
+                class="w-full text-left p-3.5 rounded-2xl bg-surface-variant hover:bg-accent-soft border border-theme transition flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 text-lg">
+                    🧹
+                </div>
+                <div>
+                    <div class="font-semibold text-sm text-main">ล้างเครื่องหมาย &amp; อ้างอิงจาก AI</div>
+                    <div class="text-xs text-sub mt-0.5">ลบ **, หัวข้อ ###, ตัวเลขอ้างอิง [1] ¹² และแหล่งอ้างอิงท้ายข้อความ</div>
+                </div>
+            </button>
         </div>
     </div>
 </div>
@@ -1627,6 +1642,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btnTopRedo: document.getElementById('btnTopRedo'),
         btnStripUndo: document.getElementById('btnStripUndo'),
         btnStripRedo: document.getElementById('btnStripRedo'),
+        btnStripCleanAi: document.getElementById('btnStripCleanAi'),
         btnTopFind: document.getElementById('btnTopFind'),
         btnTopSpellcheck: document.getElementById('btnTopSpellcheck'),
         btnTopPreview: document.getElementById('btnTopPreview'),
@@ -3894,7 +3910,107 @@ ${wrappedText}`
         syncEditorToState(false);
     }
 
+    function cleanAiArtifactsText(text) {
+        let out = String(text || '').replace(/\r\n/g, '\n');
+
+        // 1. Strip Markdown code fence lines (``` or ```lang)
+        out = out.replace(/^[ \t]*```[a-zA-Z0-9_-]*[ \t]*$/gm, '');
+
+        // 2. Remove trailing Sources / References block at end of pasted text
+        const linesPre = out.split('\n');
+        const headingRe = /^(?:#{1,6}\s*)?(?:\*{1,2}|_{1,2})?(?:Sources?|References?|Citations?|แหล่งอ้างอิง|แหล่งข้อมูล|รายการอ้างอิง|เอกสารอ้างอิง|อ้างอิงจาก)\s*:?(?:\*{1,2}|_{1,2})?\s*$/i;
+        const refLineRe = /^\s*(?:[-*•+]|\[\^?\d+\]|\d+[.)])\s+.+$|^\s*https?:\/\/\S+\s*$|^\s*\[[^\]]+\]\(https?:\/\/[^)]+\)\s*$/;
+        for (let idx = linesPre.length - 1; idx >= 0; idx--) {
+            if (!headingRe.test(linesPre[idx].trim())) continue;
+            const tail = linesPre.slice(idx + 1).filter(l => l.trim() !== '');
+            if (tail.length > 0 && tail.every(l => refLineRe.test(l))) {
+                out = linesPre.slice(0, idx).join('\n');
+            }
+            break;
+        }
+
+        // 3. Remove standalone footnote definitions & explicit Source URL lines
+        out = out.replace(/^[ \t]*\[\^?\d+\]:[ \t]+.+$/gm, '');
+        out = out.replace(/^[ \t]*(?:\*{1,2})?(?:แหล่งที่มา|ที่มา|Source)(?:\*{1,2})?\s*:\s*https?:\/\/\S+[ \t]*$/gim, '');
+
+        // 4. Remove parenthesized & inline AI citation links, unwrap plain markdown links
+        out = out.replace(/\(\s*\[[^\]]+\]\(https?:\/\/[^)\s]+(?:\s+"[^"]*")?\)\s*\)/gi, '');
+        out = out.replace(/\[\s*(?:\d+(?:\s*[,，\-–]\s*\d+)*|[a-z0-9-]+(?:\.[a-z0-9-]+)+|source|sources|citation|ref|อ้างอิง|แหล่งอ้างอิง|แหล่งที่มา)\s*\]\(https?:\/\/[^)\s]+(?:\s+"[^"]*")?\)/gi, '');
+        out = out.replace(/\[([^\]]+)\]\(https?:\/\/[^)\s]+(?:\s+"[^"]*")?\)/g, '$1');
+
+        // 5. Remove bracketed citation numbers ([1], [1, 2], [1-3], [^1]) and superscript digits (¹²)
+        out = out.replace(/\[\^\d+\]/g, '');
+        out = out.replace(/\[\s*\d+(?:\s*[,，\-–]\s*\d+)*\s*\]/g, '');
+        out = out.replace(/(^|[^a-zA-Z0-9])[¹²³⁴⁵⁶⁷⁸⁹⁰]+/g, '$1');
+
+        // 6. Remove Markdown emphasis, headings & inline code line-by-line while keeping scene dividers (*** / * * *)
+        const cleanedLines = out.split('\n').map((line) => {
+            if (/^[\t ]*(?:\*{3,}|(?:\*\s+){2,}\*)[ \t]*$/.test(line)) return line.trimEnd();
+            let s = line.replace(/^([\t ]*)#{1,6}\s+/, '$1');
+            s = s.replace(/\*\*\*([^*\n]+)\*\*\*/g, '$1');
+            s = s.replace(/\*\*([^*\n]+)\*\*/g, '$1');
+            s = s.replace(/__([^_\n]+)__/g, '$1');
+            s = s.replace(/\*\*/g, '');
+            s = s.replace(/(^|[^*])\*([^\s*](?:[^*\n]*?[^\s*])?)\*(?![*])/g, '$1$2');
+            s = s.replace(/`([^`\n]+)`/g, '$1');
+            const m = s.match(/^([\t ]*)(.*)$/);
+            const lead = m ? m[1] : '';
+            let body = m ? m[2] : s;
+            body = body.replace(/[ ]+([,.;:!?)\]])/g, '$1');
+            body = body.replace(/[ ]{2,}/g, ' ').replace(/[ \t]+$/, '');
+            return lead + body;
+        });
+
+        return cleanedLines.join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+|\n+$/g, '');
+    }
+
+    function runOneClickCleanAi(fromSheet = false) {
+        if (!getActiveChapter()) { showToast('ยังไม่มีนิยาย'); return; }
+        const ta = el.novelEditor;
+        const fullText = ta.value;
+        if (!fullText.trim()) { showToast('ยังไม่มีเนื้อหาให้ล้างเครื่องหมาย'); return; }
+
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const hasSelection = !fromSheet && start !== end;
+
+        if (hasSelection) {
+            const selected = fullText.slice(start, end);
+            const cleaned = cleanAiArtifactsText(selected);
+            if (cleaned === selected) {
+                showToast('ไม่พบ ** หรือรายการอ้างอิงในส่วนที่เลือก');
+                return;
+            }
+            pushUndoSnapshot(fullText);
+            ta.value = fullText.slice(0, start) + cleaned + fullText.slice(end);
+            ta.focus();
+            ta.setSelectionRange(start, start + cleaned.length);
+            lastSnapshot = ta.value;
+            syncEditorToState(false);
+            showToast('🧹 ล้าง ** และอ้างอิงในส่วนที่เลือกเรียบร้อย (Undo ได้)');
+            return;
+        }
+
+        const cleaned = cleanAiArtifactsText(fullText);
+        if (cleaned === fullText) {
+            if (fromSheet) closeModal(el.formatSheetBackdrop);
+            showToast('ไม่พบ ** หรือรายการอ้างอิงจาก AI ในตอนนี้');
+            return;
+        }
+
+        pushUndoSnapshot(fullText);
+        ta.value = cleaned;
+        lastSnapshot = cleaned;
+        syncEditorToState(false);
+        if (fromSheet) closeModal(el.formatSheetBackdrop);
+        showToast('🧹 ล้าง ** และตัวเลข/แหล่งอ้างอิงจาก AI เรียบร้อย (กด Undo ย้อนกลับได้)');
+    }
+
     function applyFormatPreset(preset) {
+        if (preset === 'strip-ai') {
+            runOneClickCleanAi(true);
+            return;
+        }
         if (!getActiveChapter()) { showToast('ยังไม่มีนิยาย'); return; }
         const raw = el.novelEditor.value;
         if (!raw.trim()) { showToast('ยังไม่มีเนื้อหาให้จัดหน้า'); return; }
@@ -4840,6 +4956,7 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
         el.btnTopPreview.addEventListener('click', openA5PreviewModal);
 
         el.btnBottomFormat.addEventListener('click', () => openModal(el.formatSheetBackdrop));
+        if (el.btnStripCleanAi) el.btnStripCleanAi.addEventListener('click', () => runOneClickCleanAi(false));
         el.btnBottomSpellcheck.addEventListener('click', () => openSpellcheckModal('proofread'));
         el.btnBottomCopy.addEventListener('click', () => copyContentToClipboard('current'));
         el.btnBottomDoc.addEventListener('click', () => exportWordDoc('current'));
