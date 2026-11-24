@@ -510,6 +510,39 @@
                 </button>
             </div>
 
+            <!-- Peachz Suite Switcher -->
+            <div id="peachzSuiteMenuWrap" class="relative shrink-0">
+                <button id="btnPeachzSuiteMenu" type="button" title="สลับไปยังแอปอื่นใน Peachz Suite"
+                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-surface-variant hover:bg-accent-soft text-main border border-theme text-xs font-semibold transition active:scale-95">
+                    <span>🍑 แอป</span>
+                    <span class="text-[10px] opacity-75">▾</span>
+                </button>
+                <div id="peachzSuiteDropdown" class="hidden absolute right-0 mt-2 w-60 rounded-2xl bg-surface border border-theme shadow-xl p-1.5 z-50 text-xs space-y-0.5">
+                    <div class="px-2.5 py-1 text-[10px] font-bold text-muted-custom uppercase tracking-wide">Peachz Writer &amp; Reader Suite</div>
+                    <a href="https://dblack-dev.github.io/peachz-shelf/" class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl hover:bg-surface-variant text-main transition">
+                        <span>📚 Peachz Shelf</span>
+                        <span class="text-[10px] text-sub">ชั้นอ่าน</span>
+                    </a>
+                    <a href="https://dblack-dev.github.io/pomehelpmami/" class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl hover:bg-surface-variant text-main transition">
+                        <span>🐶 น้องหมาช่วยแปล (3 AI)</span>
+                        <span class="text-[10px] text-sub">เทียบแปล</span>
+                    </a>
+                    <a href="https://dblack-dev.github.io/noveltransstudio/" class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl hover:bg-surface-variant text-main transition">
+                        <span>📖 NovelTrans Studio</span>
+                        <span class="text-[10px] text-sub">แปล+Bible</span>
+                    </a>
+                    <div class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl bg-accent-soft text-accent font-semibold">
+                        <span>🍑 Peachz Haus Studio</span>
+                        <span class="text-[10px]">ใช้อยู่</span>
+                    </div>
+                    <div class="border-t border-theme my-1"></div>
+                    <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl text-muted-custom opacity-65 cursor-default">
+                        <span>🧬 Peachz Hub</span>
+                        <span class="text-[10px]">เฟส 2 เร็วๆ นี้</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Google Auth: Login Button / User Profile Menu -->
             <div id="authHeaderContainer" class="relative shrink-0">
                 <button id="btnGoogleLogin" type="button" title="เข้าสู่ระบบด้วย Google"
@@ -806,6 +839,10 @@
                             class="px-2.5 py-1.5 rounded-xl bg-surface-variant hover:bg-accent-soft hover:text-accent text-xs font-semibold transition active:scale-95 flex items-center gap-1">
                             <span>🧹 ล้างขยะ AI</span>
                         </button>
+                        <button id="btnStripRadar" type="button" title="ตรวจคำซ้ำถี่, เครื่องหมายคำพูดลืมปิด, เว้นวรรคไม้ยมก ๆ และย่อหน้ายาวเกินไป"
+                            class="px-2.5 py-1.5 rounded-xl bg-surface-variant hover:bg-accent-soft hover:text-accent text-xs font-semibold transition active:scale-95 flex items-center gap-1">
+                            <span>🔍 เรดาร์คำซ้ำ</span>
+                        </button>
                     </div>
 
                     <div class="flex items-center gap-1.5 shrink-0">
@@ -853,6 +890,27 @@
                     </div>
                 </div>
 
+                <div id="handoffReceiveBanner" class="hidden max-w-3xl mx-auto mb-3 bg-surface rounded-2xl border-2 border-accent/50 shadow-sm p-3.5 sm:p-4 space-y-2.5">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="space-y-0.5 min-w-0">
+                            <div class="text-xs font-bold text-accent">📥 มีบทแปลส่งมาจากแอปอื่นใน Peachz Suite</div>
+                            <p id="handoffSourceMeta" class="text-xs text-sub truncate"></p>
+                        </div>
+                        <button id="btnHandoffDismiss" type="button" title="ปิดแจ้งเตือนนี้"
+                            class="p-1.5 rounded-lg bg-surface-variant text-sub hover:text-main text-xs shrink-0">✕</button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button id="btnHandoffNewChapter" type="button"
+                            class="px-3.5 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold shadow-sm hover:opacity-95 transition">
+                            ＋ สร้างตอนใหม่และวางข้อความ
+                        </button>
+                        <button id="btnHandoffReplaceCurrent" type="button"
+                            class="px-3.5 py-1.5 rounded-xl bg-surface-variant hover:bg-accent-soft text-main text-xs font-semibold border border-theme transition">
+                            วางทับตอนปัจจุบัน (Undo ได้)
+                        </button>
+                    </div>
+                </div>
+
                 <div id="editorWorkspaceCard" class="max-w-3xl mx-auto bg-editor rounded-3xl border border-theme shadow-sm min-h-full flex flex-col p-4 sm:p-7">
                     <input id="editorChapterTitleInput" type="text" placeholder="ตั้งชื่อตอนนิยาย..."
                         class="w-full bg-transparent font-sarabun font-bold text-lg sm:text-2xl text-main placeholder:text-muted-custom focus:outline-none pb-2.5 mb-3 border-b border-theme">
@@ -885,6 +943,10 @@
                         <button id="btnBottomCopy" type="button" class="pill-btn pill-neutral" title="คัดลอกเนื้อหาตอนปัจจุบัน">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                             <span>คัดลอก</span>
+                        </button>
+
+                        <button id="btnBottomSendShelf" type="button" class="pill-btn pill-neutral" title="ส่งบทนี้เข้าคลังอ่าน Peachz Shelf ในคลิกเดียว">
+                            <span>📚 ส่งเข้าชั้นอ่าน</span>
                         </button>
 
                         <button id="btnBottomDoc" type="button" class="pill-btn pill-neutral" title="ส่งออกไฟล์ Word (.doc)">
@@ -1303,6 +1365,47 @@
 </div>
 
 <!-- =========================================================================
+     MODAL 3B: REPETITION & THAI NOVEL PUNCTUATION RADAR
+     ========================================================================= -->
+<div id="radarModalBackdrop" class="no-print modal-backdrop-all fixed inset-0 bg-black/55 backdrop-blur-[1px] z-[60] hidden items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-2xl bg-surface rounded-3xl border border-theme shadow-2xl overflow-hidden flex flex-col max-h-[88dvh]">
+        <div class="px-5 py-4 border-b border-theme flex items-center justify-between gap-2 shrink-0">
+            <div class="min-w-0">
+                <h3 class="text-base font-bold text-main">🔍 เรดาร์ตรวจคำซ้ำ &amp; วรรคตอนนิยาย</h3>
+                <p class="text-xs text-muted-custom">สแกนคำซ้ำถี่ระยะใกล้, เครื่องหมายคำพูดลืมปิด, เว้นวรรค "ๆ" และย่อหน้ายาว</p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button id="btnRadarRescan" type="button" class="px-3 py-1.5 rounded-xl bg-surface-variant hover:bg-accent-soft text-main text-xs font-semibold transition">🔄 สแกนใหม่</button>
+                <button id="btnCloseRadarModal" type="button" class="p-1.5 rounded-xl bg-surface-variant text-sub hover:text-main">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 text-xs sm:text-sm">
+            <div id="radarSummaryStats" class="flex flex-wrap gap-2"></div>
+
+            <div class="space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-bold text-main">🔁 คำที่อาจซ้ำถี่เกินไป (กดเพื่อกระโดดตรวจจุดซ้ำ)</h4>
+                </div>
+                <div id="radarRepetitionList" class="space-y-2"></div>
+            </div>
+
+            <div class="space-y-2 pt-2 border-t border-theme">
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <h4 class="font-bold text-main">✍️ วรรคตอนนิยายไทย &amp; ความยาวย่อหน้า</h4>
+                    <button id="btnRadarFixMaiYamok" type="button" class="hidden px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-sm transition">
+                        ✨ แก้เว้นวรรค "ๆ" ทั้งตอน (Undo ได้)
+                    </button>
+                </div>
+                <div id="radarPunctuationList" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
      MODAL 4: WORD COUNT CALIBRATION (~RAW) & GOAL
      ========================================================================= -->
 <div id="rawSettingsBackdrop" class="no-print modal-backdrop-all fixed inset-0 bg-black/55 backdrop-blur-[1px] z-[60] hidden items-center justify-center p-4">
@@ -1643,6 +1746,22 @@ document.addEventListener('DOMContentLoaded', function () {
         btnStripUndo: document.getElementById('btnStripUndo'),
         btnStripRedo: document.getElementById('btnStripRedo'),
         btnStripCleanAi: document.getElementById('btnStripCleanAi'),
+        btnStripRadar: document.getElementById('btnStripRadar'),
+        btnPeachzSuiteMenu: document.getElementById('btnPeachzSuiteMenu'),
+        peachzSuiteDropdown: document.getElementById('peachzSuiteDropdown'),
+        peachzSuiteMenuWrap: document.getElementById('peachzSuiteMenuWrap'),
+        handoffReceiveBanner: document.getElementById('handoffReceiveBanner'),
+        handoffSourceMeta: document.getElementById('handoffSourceMeta'),
+        btnHandoffNewChapter: document.getElementById('btnHandoffNewChapter'),
+        btnHandoffReplaceCurrent: document.getElementById('btnHandoffReplaceCurrent'),
+        btnHandoffDismiss: document.getElementById('btnHandoffDismiss'),
+        radarModalBackdrop: document.getElementById('radarModalBackdrop'),
+        btnCloseRadarModal: document.getElementById('btnCloseRadarModal'),
+        btnRadarRescan: document.getElementById('btnRadarRescan'),
+        radarSummaryStats: document.getElementById('radarSummaryStats'),
+        radarRepetitionList: document.getElementById('radarRepetitionList'),
+        btnRadarFixMaiYamok: document.getElementById('btnRadarFixMaiYamok'),
+        radarPunctuationList: document.getElementById('radarPunctuationList'),
         btnTopFind: document.getElementById('btnTopFind'),
         btnTopSpellcheck: document.getElementById('btnTopSpellcheck'),
         btnTopPreview: document.getElementById('btnTopPreview'),
@@ -1699,6 +1818,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btnBottomFormat: document.getElementById('btnBottomFormat'),
         btnBottomSpellcheck: document.getElementById('btnBottomSpellcheck'),
         btnBottomCopy: document.getElementById('btnBottomCopy'),
+        btnBottomSendShelf: document.getElementById('btnBottomSendShelf'),
         btnBottomDoc: document.getElementById('btnBottomDoc'),
         btnBottomEpub: document.getElementById('btnBottomEpub'),
         btnBottomPdf: document.getElementById('btnBottomPdf'),
@@ -4045,6 +4165,361 @@ ${wrappedText}`
         closeModal(el.formatSheetBackdrop);
     }
 
+    // =========================================================================
+    // REPETITION & PUNCTUATION RADAR + SUITE HANDOFF
+    // =========================================================================
+    const RADAR_STOP_WORDS = new Set([
+        'ที่','และ','ใน','ของ','เป็น','ได้','มี','ไม่','ให้','จะ','ก็','ว่า','กับ','ไป','มา','อยู่',
+        'นี้','นั้น','เขา','เธอ','ฉัน','ชั้น','ผม','คุณ','มัน','เรา','พวก','กัน','จาก','ถึง','ด้วย',
+        'แต่','หรือ','ถ้า','เพราะ','เมื่อ','แล้ว','ยัง','ต้อง','อาจ','คือ','ผู้','คน','หนึ่ง','อย่าง',
+        'แบบ','ซึ่ง','โดย','เพื่อ','ตาม','ต่อ','ขึ้น','ลง','ออก','เข้า','กว่า','สุด','มาก','น้อย','ดี',
+        'นะ','คะ','ค่ะ','ครับ','ล่ะ','สิ','หรอก','เลย','อัน','ตัว','ใบ','ครั้ง','ตอน','เรื่อง','นี่','นั่น',
+        'ตรง','แห่ง','จน','กระทั่ง','เพียง','แค่','เอา','ทำ','พูด','ถาม','ตอบ','บอก','ดู','เห็น','รู้','คิด',
+        'เดิน','นั่ง','ยืน','มอง','กลับ','ทั้ง','ทุก','บาง','อีก','ด้วยกัน','เช่น','ส่วน','สำหรับ','ระหว่าง',
+        'บน','ล่าง','หน้า','หลัง','ข้าง','ก่อน','ราว','คล้าย','เหมือน','แม้','จนกระทั่ง','พอ','ที','คนนี้',
+        'คนนั้น','ตัวนี้','สิ่ง','แห่งนี้','เวลานี้','ขณะ','ตอนนี้','วัน','คืน','มือ','ตา','ใจ','เสียง'
+    ]);
+    let radarScanData = { repeated: [], punctIssues: [], maiYamokCount: 0, totalWords: 0 };
+    let radarOccCursor = new Map();
+
+    function segmentWordsWithOffsets(text) {
+        const tokens = [];
+        if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
+            try {
+                const seg = new Intl.Segmenter('th', { granularity: 'word' });
+                for (const s of seg.segment(text)) {
+                    if (!s.isWordLike) continue;
+                    tokens.push({ word: s.segment, start: s.index, end: s.index + s.segment.length });
+                }
+                return tokens;
+            } catch (e) {}
+        }
+        const re = /[\u0E01-\u0E4E]{2,}|[A-Za-z]{2,}/g;
+        let m;
+        while ((m = re.exec(text)) !== null) {
+            tokens.push({ word: m[0], start: m.index, end: m.index + m[0].length });
+        }
+        return tokens;
+    }
+
+    function scanNovelRadar(text) {
+        const raw = String(text || '');
+        const tokens = segmentWordsWithOffsets(raw);
+        const contentSeq = [];
+        const wordMap = new Map();
+
+        for (let i = 0; i < tokens.length; i++) {
+            const t = tokens[i];
+            const norm = t.word.trim().toLowerCase();
+            if (norm.length < 2 || /^\d+$/.test(norm)) continue;
+            if (!/[\u0E00-\u0E7F]|[a-z]/i.test(norm)) continue;
+            if (RADAR_STOP_WORDS.has(norm)) continue;
+
+            const cIdx = contentSeq.length;
+            contentSeq.push(norm);
+            let entry = wordMap.get(norm);
+            if (!entry) {
+                entry = { label: t.word.trim(), count: 0, positions: [], seqIndices: [] };
+                wordMap.set(norm, entry);
+            }
+            entry.count++;
+            entry.positions.push({ start: t.start, end: t.end });
+            entry.seqIndices.push(cIdx);
+        }
+
+        const repeated = [];
+        for (const entry of wordMap.values()) {
+            let closePairs = 0;
+            for (let j = 1; j < entry.seqIndices.length; j++) {
+                if (entry.seqIndices[j] - entry.seqIndices[j - 1] <= 45) {
+                    closePairs++;
+                }
+            }
+            if (closePairs >= 1 || entry.count >= 5) {
+                repeated.push({
+                    word: entry.label,
+                    count: entry.count,
+                    closePairs,
+                    positions: entry.positions
+                });
+            }
+        }
+        repeated.sort((a, b) => (b.closePairs - a.closePairs) || (b.count - a.count) || a.word.localeCompare(b.word, 'th'));
+
+        const punctIssues = [];
+        let maiYamokCount = 0;
+        const lines = raw.split('\n');
+        let offset = 0;
+        let paraNum = 0;
+
+        for (const line of lines) {
+            const lineLen = line.length;
+            const trimmed = line.trim();
+            if (trimmed) {
+                paraNum++;
+                // Check unbalanced quotes & brackets per paragraph
+                const openCurly = (line.match(/“/g) || []).length;
+                const closeCurly = (line.match(/”/g) || []).length;
+                if (openCurly !== closeCurly) {
+                    punctIssues.push({
+                        type: 'quote',
+                        title: `ย่อหน้าที่ ${paraNum}: เครื่องหมาย “ ” ไม่ครบคู่ (เปิด ${openCurly} / ปิด ${closeCurly})`,
+                        detail: trimmed.slice(0, 90) + (trimmed.length > 90 ? '...' : ''),
+                        start: offset,
+                        end: offset + Math.min(lineLen, 40)
+                    });
+                }
+                const straightQuotes = (line.match(/"/g) || []).length;
+                if (straightQuotes % 2 !== 0) {
+                    punctIssues.push({
+                        type: 'quote',
+                        title: `ย่อหน้าที่ ${paraNum}: เครื่องหมาย " ไม่ครบคู่ (${straightQuotes} ตัว)`,
+                        detail: trimmed.slice(0, 90) + (trimmed.length > 90 ? '...' : ''),
+                        start: offset,
+                        end: offset + Math.min(lineLen, 40)
+                    });
+                }
+                const openCorner = (line.match(/『/g) || []).length;
+                const closeCorner = (line.match(/』/g) || []).length;
+                if (openCorner !== closeCorner) {
+                    punctIssues.push({
+                        type: 'quote',
+                        title: `ย่อหน้าที่ ${paraNum}: วงเล็บ 『 』 ไม่ครบคู่ (${openCorner} / ${closeCorner})`,
+                        detail: trimmed.slice(0, 90) + (trimmed.length > 90 ? '...' : ''),
+                        start: offset,
+                        end: offset + Math.min(lineLen, 40)
+                    });
+                }
+                const openParen = (line.match(/\(/g) || []).length;
+                const closeParen = (line.match(/\)/g) || []).length;
+                if (openParen !== closeParen) {
+                    punctIssues.push({
+                        type: 'quote',
+                        title: `ย่อหน้าที่ ${paraNum}: วงเล็บ ( ) ไม่ครบคู่ (${openParen} / ${closeParen})`,
+                        detail: trimmed.slice(0, 90) + (trimmed.length > 90 ? '...' : ''),
+                        start: offset,
+                        end: offset + Math.min(lineLen, 40)
+                    });
+                }
+
+                // Check Thai ไม้ยมก glued without leading space (ช้าๆ -> ช้า ๆ)
+                const ymRe = /([\u0E01-\u0E4E])ๆ/g;
+                let ymMatch;
+                while ((ymMatch = ymRe.exec(line)) !== null) {
+                    maiYamokCount++;
+                    if (maiYamokCount <= 12) {
+                        const snippetStart = Math.max(0, ymMatch.index - 12);
+                        const snippetEnd = Math.min(line.length, ymMatch.index + 14);
+                        punctIssues.push({
+                            type: 'maiyamok',
+                            title: `ย่อหน้าที่ ${paraNum}: ไม้ยมกติดตัวอักษร ("...${line.slice(snippetStart, snippetEnd).trim()}...")`,
+                            detail: 'ตามหลักควรเว้น 1 วรรคหน้าไม้ยมก (เช่น ช้า ๆ)',
+                            start: offset + ymMatch.index,
+                            end: offset + ymMatch.index + 2
+                        });
+                    }
+                }
+
+                // Check overly long paragraphs (> 180 word segments)
+                const pWords = segmentWordsWithOffsets(trimmed).length;
+                if (pWords > 180) {
+                    punctIssues.push({
+                        type: 'long',
+                        title: `ย่อหน้าที่ ${paraNum}: ยาวมาก (${pWords} คำ)`,
+                        detail: 'แนะนำลองแบ่งเป็น 2 ย่อหน้าเพื่อให้อ่านบนมือถือสบายตาขึ้น',
+                        start: offset,
+                        end: offset + Math.min(lineLen, 40)
+                    });
+                }
+            }
+            offset += lineLen + 1;
+        }
+
+        return {
+            repeated: repeated.slice(0, 35),
+            punctIssues,
+            maiYamokCount,
+            totalWords: tokens.length
+        };
+    }
+
+    function renderRadarModalResults() {
+        const text = el.novelEditor.value || '';
+        radarScanData = scanNovelRadar(text);
+        radarOccCursor = new Map();
+
+        const { repeated, punctIssues, maiYamokCount, totalWords } = radarScanData;
+        el.radarSummaryStats.innerHTML = [
+            `<span class="px-2.5 py-1 rounded-xl bg-surface-variant text-main font-semibold">คำทั้งหมด ~${totalWords.toLocaleString()}</span>`,
+            `<span class="px-2.5 py-1 rounded-xl ${repeated.length ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'} font-semibold">🔁 คำซ้ำ ${repeated.length} กลุ่ม</span>`,
+            `<span class="px-2.5 py-1 rounded-xl ${punctIssues.length ? 'bg-rose-500/15 text-rose-600 dark:text-rose-300' : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'} font-semibold">✍️ จุดตรวจวรรคตอน/ย่อหน้า ${punctIssues.length}</span>`
+        ].join('');
+
+        el.btnRadarFixMaiYamok.classList.toggle('hidden', maiYamokCount === 0);
+
+        if (repeated.length === 0) {
+            el.radarRepetitionList.innerHTML = `<div class="p-3 rounded-2xl bg-surface-variant text-sub text-center">✅ ยังไม่พบคำซ้ำถี่ผิดปกติในตอนนี้</div>`;
+        } else {
+            el.radarRepetitionList.innerHTML = repeated.map((item, idx) => `
+                <div class="p-3 rounded-2xl bg-surface-variant border border-theme flex items-center justify-between gap-2">
+                    <div class="min-w-0 space-y-0.5">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-main text-sm">"${escapeHtml(item.word)}"</span>
+                            <span class="px-2 py-0.5 rounded-full bg-surface text-[11px] font-semibold text-sub">พบ ${item.count} ครั้ง</span>
+                            ${item.closePairs > 0 ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] font-bold">⚠️ ซ้ำใกล้กัน ${item.closePairs} ช่วง</span>` : ''}
+                        </div>
+                    </div>
+                    <button type="button" data-radar-rep="${idx}" class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold shrink-0 hover:opacity-95 transition">
+                        ไปจุดถัดไป →
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        if (punctIssues.length === 0) {
+            el.radarPunctuationList.innerHTML = `<div class="p-3 rounded-2xl bg-surface-variant text-sub text-center">✅ เครื่องหมายคำพูด, ไม้ยมก ๆ และความยาวย่อหน้าดูเรียบร้อยดี</div>`;
+        } else {
+            el.radarPunctuationList.innerHTML = punctIssues.map((iss, idx) => `
+                <div class="p-3 rounded-2xl bg-surface-variant border border-theme flex items-center justify-between gap-2">
+                    <div class="min-w-0 space-y-0.5">
+                        <div class="font-semibold text-main">${escapeHtml(iss.title)}</div>
+                        <div class="text-[11px] text-sub truncate">${escapeHtml(iss.detail)}</div>
+                    </div>
+                    <button type="button" data-radar-punct="${idx}" class="px-3 py-1.5 rounded-xl bg-surface border border-theme text-main hover:bg-accent-soft text-xs font-semibold shrink-0 transition">
+                        ไปจุดนี้ →
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+
+    function openRadarModal() {
+        if (!getActiveChapter()) { showToast('ยังไม่มีนิยาย'); return; }
+        if (!el.novelEditor.value.trim()) { showToast('ยังไม่มีเนื้อหาให้สแกน'); return; }
+        renderRadarModalResults();
+        openModal(el.radarModalBackdrop);
+    }
+
+    function fixAllMaiYamokSpacing() {
+        const raw = el.novelEditor.value;
+        const fixed = raw.replace(/([\u0E01-\u0E4E])ๆ/g, '$1 ๆ');
+        if (fixed === raw) {
+            showToast('ไม่พบไม้ยมกที่ติดคำอยู่');
+            return;
+        }
+        pushUndoSnapshot(raw);
+        el.novelEditor.value = fixed;
+        lastSnapshot = fixed;
+        syncEditorToState(false);
+        renderRadarModalResults();
+        showToast('✨ เว้นวรรคหน้า "ๆ" ทั้งตอนเรียบร้อย (Undo ได้)');
+    }
+
+    const SUITE_HANDOFF_KEY = 'peachz_suite_handoff_v1';
+    let pendingIncomingHandoff = null;
+
+    function checkIncomingHandoff() {
+        try {
+            const raw = window.localStorage.getItem(SUITE_HANDOFF_KEY);
+            if (!raw) {
+                pendingIncomingHandoff = null;
+                if (el.handoffReceiveBanner) el.handoffReceiveBanner.classList.add('hidden');
+                return;
+            }
+            const data = JSON.parse(raw);
+            if (!data || data.target !== 'peachz-pwa' || !data.content || !String(data.content).trim()) return;
+            if (data.createdAt && (Date.now() - Number(data.createdAt) > 12 * 60 * 60 * 1000)) return;
+            pendingIncomingHandoff = data;
+            if (el.handoffSourceMeta) {
+                const len = String(data.content).trim().length.toLocaleString();
+                el.handoffSourceMeta.textContent = `จาก ${data.sourceApp || 'แอปแปล'} • "${data.title || 'ตอนใหม่'}" (${len} ตัวอักษร)`;
+            }
+            if (el.handoffReceiveBanner) el.handoffReceiveBanner.classList.remove('hidden');
+        } catch (e) {}
+    }
+
+    function dismissIncomingHandoff() {
+        pendingIncomingHandoff = null;
+        try {
+            const raw = window.localStorage.getItem(SUITE_HANDOFF_KEY);
+            if (raw && JSON.parse(raw)?.target === 'peachz-pwa') {
+                window.localStorage.removeItem(SUITE_HANDOFF_KEY);
+            }
+        } catch (e) {}
+        if (el.handoffReceiveBanner) el.handoffReceiveBanner.classList.add('hidden');
+    }
+
+    function applyHandoffToChapter(mode) {
+        if (!pendingIncomingHandoff || !pendingIncomingHandoff.content) return;
+        const incomingTitle = String(pendingIncomingHandoff.title || '').trim();
+        const incomingContent = String(pendingIncomingHandoff.content);
+
+        if (state.novels.length === 0) {
+            const firstNovel = normalizeNovelObject({ id: 'novel-' + Date.now(), novelTitle: incomingTitle || 'นิยายเรื่องแรก', chapters: [] }, 0);
+            state.novels.push(firstNovel);
+            state.activeNovelId = firstNovel.id;
+        }
+        const novel = getActiveNovel();
+        if (!novel) return;
+
+        if (mode === 'new') {
+            const newCh = {
+                id: 'ch-' + Date.now(),
+                title: incomingTitle || `บทที่ ${novel.chapters.length + 1} ตอนใหม่`,
+                content: incomingContent
+            };
+            novel.chapters.push(newCh);
+            novel.activeChapterId = newCh.id;
+            loadActiveChapterIntoEditor();
+            renderNovelSwitcher();
+            renderChapterList();
+            scheduleAutoSave();
+            dismissIncomingHandoff();
+            showToast(`📥 สร้างตอน "${newCh.title}" และวางข้อความเรียบร้อย`);
+            return;
+        }
+
+        const ch = getActiveChapter();
+        if (!ch) return;
+        pushUndoSnapshot(el.novelEditor.value);
+        el.novelEditor.value = incomingContent;
+        if (incomingTitle && (!ch.title || /ตอนใหม่/.test(ch.title))) {
+            ch.title = incomingTitle;
+            if (el.topChapterTitleInput) el.topChapterTitleInput.value = ch.title;
+            if (el.editorChapterTitleInput) el.editorChapterTitleInput.value = ch.title;
+        }
+        lastSnapshot = incomingContent;
+        syncEditorToState(false);
+        renderChapterList();
+        dismissIncomingHandoff();
+        showToast('📥 วางข้อความลงตอนปัจจุบันแล้ว (กด Undo ย้อนกลับได้)');
+    }
+
+    function sendCurrentChapterToShelf() {
+        const ch = getActiveChapter();
+        const content = (el.novelEditor.value || '').trim();
+        if (!ch || !content) {
+            showToast('ยังไม่มีเนื้อหาสำหรับส่งเข้า Peachz Shelf');
+            return;
+        }
+        const title = (ch.title || el.editorChapterTitleInput.value || 'ตอนใหม่').trim();
+        const payload = {
+            target: 'peachz-shelf',
+            sourceApp: 'Peachz Haus Studio',
+            title,
+            content: el.novelEditor.value,
+            createdAt: Date.now()
+        };
+        try {
+            window.localStorage.setItem(SUITE_HANDOFF_KEY, JSON.stringify(payload));
+        } catch (e) {
+            showToast('ไม่สามารถส่งข้อมูลข้ามแอปได้');
+            return;
+        }
+        const win = window.open('https://dblack-dev.github.io/peachz-shelf/?handoff=1', '_blank');
+        showToast(win ? '📚 ส่งบทนี้ไปที่ Peachz Shelf แล้ว' : '📚 เตรียมข้อมูลแล้ว กดเปิด Peachz Shelf จากเมนูแอป 🍑 เพื่อรับเข้าชั้นอ่าน');
+    }
+
     function clearCurrentChapterContent() {
         if (!getActiveChapter()) return;
         const currentText = el.novelEditor.value;
@@ -4957,8 +5432,52 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
 
         el.btnBottomFormat.addEventListener('click', () => openModal(el.formatSheetBackdrop));
         if (el.btnStripCleanAi) el.btnStripCleanAi.addEventListener('click', () => runOneClickCleanAi(false));
+        if (el.btnStripRadar) el.btnStripRadar.addEventListener('click', openRadarModal);
+        if (el.btnPeachzSuiteMenu && el.peachzSuiteDropdown) {
+            el.btnPeachzSuiteMenu.addEventListener('click', (e) => {
+                e.stopPropagation();
+                el.peachzSuiteDropdown.classList.toggle('hidden');
+            });
+            document.addEventListener('click', (e) => {
+                if (el.peachzSuiteMenuWrap && !el.peachzSuiteMenuWrap.contains(e.target)) {
+                    el.peachzSuiteDropdown.classList.add('hidden');
+                }
+            });
+        }
+        if (el.btnHandoffNewChapter) el.btnHandoffNewChapter.addEventListener('click', () => applyHandoffToChapter('new'));
+        if (el.btnHandoffReplaceCurrent) el.btnHandoffReplaceCurrent.addEventListener('click', () => applyHandoffToChapter('replace'));
+        if (el.btnHandoffDismiss) el.btnHandoffDismiss.addEventListener('click', dismissIncomingHandoff);
+        if (el.btnCloseRadarModal) el.btnCloseRadarModal.addEventListener('click', () => closeModal(el.radarModalBackdrop));
+        if (el.radarModalBackdrop) el.radarModalBackdrop.addEventListener('click', (e) => { if (e.target === el.radarModalBackdrop) closeModal(el.radarModalBackdrop); });
+        if (el.btnRadarRescan) el.btnRadarRescan.addEventListener('click', renderRadarModalResults);
+        if (el.btnRadarFixMaiYamok) el.btnRadarFixMaiYamok.addEventListener('click', fixAllMaiYamokSpacing);
+        if (el.radarRepetitionList) {
+            el.radarRepetitionList.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-radar-rep]');
+                if (!btn) return;
+                const item = radarScanData.repeated[Number(btn.getAttribute('data-radar-rep'))];
+                if (!item || !item.positions.length) return;
+                const cur = radarOccCursor.get(item.word) || 0;
+                const pos = item.positions[cur % item.positions.length];
+                radarOccCursor.set(item.word, (cur + 1) % item.positions.length);
+                if (window.innerWidth < 768) closeModal(el.radarModalBackdrop);
+                scrollEditorToRange(pos.start, pos.end);
+                showToast(`"${item.word}" — จุดที่ ${(cur % item.positions.length) + 1}/${item.positions.length}`);
+            });
+        }
+        if (el.radarPunctuationList) {
+            el.radarPunctuationList.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-radar-punct]');
+                if (!btn) return;
+                const iss = radarScanData.punctIssues[Number(btn.getAttribute('data-radar-punct'))];
+                if (!iss) return;
+                if (window.innerWidth < 768) closeModal(el.radarModalBackdrop);
+                scrollEditorToRange(iss.start, iss.end);
+            });
+        }
         el.btnBottomSpellcheck.addEventListener('click', () => openSpellcheckModal('proofread'));
         el.btnBottomCopy.addEventListener('click', () => copyContentToClipboard('current'));
+        if (el.btnBottomSendShelf) el.btnBottomSendShelf.addEventListener('click', sendCurrentChapterToShelf);
         el.btnBottomDoc.addEventListener('click', () => exportWordDoc('current'));
         el.btnBottomEpub.addEventListener('click', () => exportEpub('all'));
         el.btnBottomPdf.addEventListener('click', openA5PreviewModal);
@@ -5207,6 +5726,8 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
         loadState();
         hydrateUI();
         bindEvents();
+        checkIncomingHandoff();
+        window.addEventListener('focus', checkIncomingHandoff);
 
         window.peachzCloudBridge = {
             getStateSnapshot() {
@@ -5247,6 +5768,7 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
                     safeSetItem(UPDATED_AT_KEY, String(updatedAt || Date.now()));
                     hydrateUI();
                     updateTopAiStatusIndicator();
+                    checkIncomingHandoff();
                     return true;
                 } catch (e) {
                     console.warn('Failed to apply remote state:', e);
