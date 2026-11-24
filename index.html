@@ -4416,19 +4416,118 @@ ${wrappedText}`
     }
 
     const SUITE_HANDOFF_KEY = 'peachz_suite_handoff_v1';
+    const PEACHZ_SUITE_APP_ID = 'peachz-pwa';
+    const PEACHZ_TITLE_BADGE = '🔔 มีงานใหม่! · ';
+    const PEACHZ_TAB_ID = Math.random().toString(36).slice(2) + '_' + Date.now();
+    const peachzSuiteBus = typeof BroadcastChannel === 'function' ? new BroadcastChannel('peachz_suite_bus_v1') : null;
+
+    function setSuiteTitleBadge(hasPending) {
+        const cur = String(document.title || '');
+        if (hasPending) {
+            if (document.hidden && !cur.startsWith(PEACHZ_TITLE_BADGE)) {
+                document.title = PEACHZ_TITLE_BADGE + cur;
+            }
+        } else if (cur.startsWith(PEACHZ_TITLE_BADGE)) {
+            document.title = cur.slice(PEACHZ_TITLE_BADGE.length);
+        }
+    }
+
+    function dispatchSuiteHandoff(targetApp, url, windowName, onDone) {
+        try {
+            peachzSuiteBus?.postMessage({ type: 'handoff', targetApp, ts: Date.now() });
+        } catch (e) {}
+
+        const refs = (window.__peachzTabRefs = window.__peachzTabRefs || {});
+        const cached = refs[targetApp];
+        let sameSuiteTab = false;
+        if (cached && !cached.closed) {
+            try {
+                sameSuiteTab = cached.location && cached.location.origin === window.location.origin && cached.location.pathname.includes('/' + targetApp);
+            } catch (e) {
+                sameSuiteTab = false;
+            }
+        }
+        if (sameSuiteTab) {
+            try { cached.focus(); } catch (e) {}
+            if (typeof onDone === 'function') onDone('focused');
+            return Promise.resolve({ reused: true, focused: true });
+        }
+
+        return new Promise((resolve) => {
+            if (!peachzSuiteBus) {
+                const w = window.open(url, windowName || ('peachz_' + targetApp + '_tab'));
+                if (w) refs[targetApp] = w;
+                if (typeof onDone === 'function') onDone(w ? 'opened' : 'blocked');
+                resolve({ reused: false, focused: !!w });
+                return;
+            }
+
+            const reqId = PEACHZ_TAB_ID + '_' + Math.random().toString(36).slice(2);
+            let settled = false;
+            let timer = null;
+
+            const finishOpen = () => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                peachzSuiteBus.removeEventListener('message', onPong);
+                const w = window.open(url, windowName || ('peachz_' + targetApp + '_tab'));
+                if (w) refs[targetApp] = w;
+                if (typeof onDone === 'function') onDone(w ? 'opened' : 'blocked');
+                resolve({ reused: false, focused: !!w });
+            };
+
+            const onPong = (ev) => {
+                const d = ev && ev.data;
+                if (!d || d.type !== 'pong' || d.targetApp !== targetApp || d.reqId !== reqId) return;
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                peachzSuiteBus.removeEventListener('message', onPong);
+                try { peachzSuiteBus.postMessage({ type: 'handoff', targetApp, ts: Date.now() }); } catch (e) {}
+                if (typeof onDone === 'function') onDone('already_open');
+                resolve({ reused: true, focused: false });
+            };
+
+            peachzSuiteBus.addEventListener('message', onPong);
+            timer = setTimeout(finishOpen, 90);
+            try {
+                peachzSuiteBus.postMessage({ type: 'ping', targetApp, reqId });
+            } catch (e) {
+                finishOpen();
+            }
+        });
+    }
+
+    if (peachzSuiteBus) {
+        peachzSuiteBus.addEventListener('message', (ev) => {
+            const d = ev && ev.data;
+            if (!d || d.targetApp !== PEACHZ_SUITE_APP_ID) return;
+            if (d.type === 'ping') {
+                try {
+                    peachzSuiteBus.postMessage({ type: 'pong', targetApp: PEACHZ_SUITE_APP_ID, reqId: d.reqId, senderTabId: PEACHZ_TAB_ID });
+                } catch (e) {}
+            } else if (d.type === 'handoff') {
+                checkIncomingHandoff();
+                if (document.hidden && pendingIncomingHandoff) {
+                    setSuiteTitleBadge(true);
+                }
+            }
+        });
+    }
     let pendingIncomingHandoff = null;
 
     function checkIncomingHandoff() {
         try {
             const raw = window.localStorage.getItem(SUITE_HANDOFF_KEY);
-            if (!raw) {
+            const data = raw ? JSON.parse(raw) : null;
+            const expired = data && data.createdAt && (Date.now() - Number(data.createdAt) > 12 * 60 * 60 * 1000);
+            if (!data || data.target !== 'peachz-pwa' || !data.content || !String(data.content).trim() || expired) {
                 pendingIncomingHandoff = null;
                 if (el.handoffReceiveBanner) el.handoffReceiveBanner.classList.add('hidden');
+                setSuiteTitleBadge(false);
                 return;
             }
-            const data = JSON.parse(raw);
-            if (!data || data.target !== 'peachz-pwa' || !data.content || !String(data.content).trim()) return;
-            if (data.createdAt && (Date.now() - Number(data.createdAt) > 12 * 60 * 60 * 1000)) return;
             pendingIncomingHandoff = data;
             if (el.handoffSourceMeta) {
                 const len = String(data.content).trim().length.toLocaleString();
@@ -4447,6 +4546,7 @@ ${wrappedText}`
             }
         } catch (e) {}
         if (el.handoffReceiveBanner) el.handoffReceiveBanner.classList.add('hidden');
+        setSuiteTitleBadge(false);
     }
 
     function applyHandoffToChapter(mode) {
@@ -4516,8 +4616,17 @@ ${wrappedText}`
             showToast('ไม่สามารถส่งข้อมูลข้ามแอปได้');
             return;
         }
-        const win = window.open('https://dblack-dev.github.io/peachz-shelf/?handoff=1', '_blank');
-        showToast(win ? '📚 ส่งบทนี้ไปที่ Peachz Shelf แล้ว' : '📚 เตรียมข้อมูลแล้ว กดเปิด Peachz Shelf จากเมนูแอป 🍑 เพื่อรับเข้าชั้นอ่าน');
+        dispatchSuiteHandoff('peachz-shelf', 'https://dblack-dev.github.io/peachz-shelf/?handoff=1', 'peachz_shelf_tab', (status) => {
+            if (status === 'focused') {
+                showToast('📚 ส่งบทนี้ไป Peachz Shelf แล้ว · สลับไปแท็บที่เปิดค้างไว้ให้แล้ว ✨');
+            } else if (status === 'already_open') {
+                showToast('📚 ส่งบทนี้ไปแท็บ Peachz Shelf ที่เปิดอยู่แล้ว (ไม่เปิดแท็บซ้ำ) · คลิกสลับแท็บไปดูได้เลย 🔔');
+            } else if (status === 'blocked') {
+                showToast('📚 เตรียมข้อมูลแล้ว กดเปิด Peachz Shelf จากเมนูแอป 🍑 เพื่อรับเข้าชั้นอ่าน');
+            } else {
+                showToast('📚 ส่งบทนี้ไปที่ Peachz Shelf แล้ว');
+            }
+        });
     }
 
     function clearCurrentChapterContent() {
@@ -5727,7 +5836,20 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
         hydrateUI();
         bindEvents();
         checkIncomingHandoff();
-        window.addEventListener('focus', checkIncomingHandoff);
+        const onHausFocusOrVisible = () => {
+            if (!document.hidden) setSuiteTitleBadge(false);
+            checkIncomingHandoff();
+        };
+        window.addEventListener('focus', onHausFocusOrVisible);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) onHausFocusOrVisible();
+        });
+        window.addEventListener('storage', (e) => {
+            if (e.key === SUITE_HANDOFF_KEY) {
+                checkIncomingHandoff();
+                if (document.hidden && pendingIncomingHandoff) setSuiteTitleBadge(true);
+            }
+        });
 
         window.peachzCloudBridge = {
             getStateSnapshot() {
