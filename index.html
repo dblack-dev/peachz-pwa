@@ -839,6 +839,10 @@
                             class="px-2.5 py-1.5 rounded-xl bg-surface-variant hover:bg-accent-soft hover:text-accent text-xs font-semibold transition active:scale-95 flex items-center gap-1">
                             <span>🧹 ล้างขยะ AI</span>
                         </button>
+                        <button id="btnStripRemoveSingleAsterisk" type="button" title="ลบดอกจันตัวเดียว (*) ทั้งตอน หรือเฉพาะส่วนที่เลือก (ไม่แตะ ** หรือ *** แบ่งฉาก — กด Undo ย้อนกลับได้)"
+                            class="px-2.5 py-1.5 rounded-xl bg-surface-variant hover:bg-accent-soft hover:text-accent text-xs font-semibold transition active:scale-95 flex items-center gap-1">
+                            <span>✕ *</span>
+                        </button>
                         <button id="btnStripRadar" type="button" title="ตรวจคำซ้ำถี่, เครื่องหมายคำพูดลืมปิด, เว้นวรรคไม้ยมก ๆ และย่อหน้ายาวเกินไป"
                             class="px-2.5 py-1.5 rounded-xl bg-surface-variant hover:bg-accent-soft hover:text-accent text-xs font-semibold transition active:scale-95 flex items-center gap-1">
                             <span>🔍 เรดาร์คำซ้ำ</span>
@@ -1385,6 +1389,25 @@
         <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 text-xs sm:text-sm">
             <div id="radarSummaryStats" class="flex flex-wrap gap-2"></div>
 
+            <div class="space-y-2 p-3 rounded-2xl bg-surface-variant/70 border border-theme">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="font-bold text-main text-xs">โหมดตรวจคำซ้ำ:</span>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button id="btnRadarModeCustom" type="button" class="px-2.5 py-1 rounded-xl text-xs font-semibold border transition">🎯 เฉพาะคำที่กำหนดเอง</button>
+                        <button id="btnRadarModeAuto" type="button" class="px-2.5 py-1 rounded-xl text-xs font-semibold border transition">🔍 สแกนอัตโนมัติทุกคำ</button>
+                    </div>
+                </div>
+                <div id="radarCustomWordsPanel" class="space-y-2 pt-1">
+                    <div class="flex items-center gap-2">
+                        <input id="inputRadarAddWord" type="text" placeholder="เพิ่มคำที่ต้องการสแกน (คั่นด้วย , ได้ เช่น และ, แล้ว, ก็, ที่)"
+                            class="flex-1 min-w-0 px-3 py-1.5 rounded-xl bg-surface border border-theme text-xs text-main placeholder:text-muted-custom focus:outline-none focus:ring-2 focus:ring-accent" />
+                        <button id="btnRadarAddWord" type="button"
+                            class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold shrink-0 hover:opacity-95 transition">＋ เพิ่มคำ</button>
+                    </div>
+                    <div id="radarCustomWordTags" class="flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+
             <div class="space-y-2">
                 <div class="flex items-center justify-between gap-2">
                     <h4 class="font-bold text-main">🔁 คำที่อาจซ้ำถี่เกินไป (กดเพื่อกระโดดตรวจจุดซ้ำ)</h4>
@@ -1746,6 +1769,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btnStripUndo: document.getElementById('btnStripUndo'),
         btnStripRedo: document.getElementById('btnStripRedo'),
         btnStripCleanAi: document.getElementById('btnStripCleanAi'),
+        btnStripRemoveSingleAsterisk: document.getElementById('btnStripRemoveSingleAsterisk'),
         btnStripRadar: document.getElementById('btnStripRadar'),
         btnPeachzSuiteMenu: document.getElementById('btnPeachzSuiteMenu'),
         peachzSuiteDropdown: document.getElementById('peachzSuiteDropdown'),
@@ -1758,6 +1782,12 @@ document.addEventListener('DOMContentLoaded', function () {
         radarModalBackdrop: document.getElementById('radarModalBackdrop'),
         btnCloseRadarModal: document.getElementById('btnCloseRadarModal'),
         btnRadarRescan: document.getElementById('btnRadarRescan'),
+        btnRadarModeCustom: document.getElementById('btnRadarModeCustom'),
+        btnRadarModeAuto: document.getElementById('btnRadarModeAuto'),
+        radarCustomWordsPanel: document.getElementById('radarCustomWordsPanel'),
+        inputRadarAddWord: document.getElementById('inputRadarAddWord'),
+        btnRadarAddWord: document.getElementById('btnRadarAddWord'),
+        radarCustomWordTags: document.getElementById('radarCustomWordTags'),
         radarSummaryStats: document.getElementById('radarSummaryStats'),
         radarRepetitionList: document.getElementById('radarRepetitionList'),
         btnRadarFixMaiYamok: document.getElementById('btnRadarFixMaiYamok'),
@@ -4165,9 +4195,161 @@ ${wrappedText}`
         closeModal(el.formatSheetBackdrop);
     }
 
+    function removeSingleAsterisksText(text) {
+        let removedCount = 0;
+        const out = String(text || '').replace(/\r\n/g, '\n').split('\n').map((line) => {
+            if (/^[ \t]*(?:\*{3,}|(?:\*\s+){2,}\*)[ \t]*$/.test(line)) return line;
+            return line.replace(/(^|[^*])\*(?!\*)/g, (_, lead) => {
+                removedCount++;
+                return lead;
+            });
+        }).join('\n');
+        return { text: out, removedCount };
+    }
+
+    function runRemoveSingleAsterisks() {
+        if (!getActiveChapter()) { showToast('ยังไม่มีนิยาย'); return; }
+        const ta = el.novelEditor;
+        const fullText = ta.value;
+        if (!fullText.trim()) { showToast('ยังไม่มีเนื้อหาให้ลบดอกจัน'); return; }
+
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const hasSelection = start !== end;
+
+        if (hasSelection) {
+            const selected = fullText.slice(start, end);
+            const res = removeSingleAsterisksText(selected);
+            if (res.removedCount === 0 || res.text === selected) {
+                showToast('ไม่พบดอกจันตัวเดียว (*) ในส่วนที่เลือก');
+                return;
+            }
+            pushUndoSnapshot(fullText);
+            ta.value = fullText.slice(0, start) + res.text + fullText.slice(end);
+            ta.focus();
+            ta.setSelectionRange(start, start + res.text.length);
+            lastSnapshot = ta.value;
+            syncEditorToState(false);
+            showToast(`✕ * ลบดอกจันตัวเดียวในส่วนที่เลือก ${res.removedCount} จุด (Undo ได้)`);
+            return;
+        }
+
+        const res = removeSingleAsterisksText(fullText);
+        if (res.removedCount === 0 || res.text === fullText) {
+            showToast('ไม่พบดอกจันตัวเดียว (*) ในตอนนี้');
+            return;
+        }
+        pushUndoSnapshot(fullText);
+        ta.value = res.text;
+        lastSnapshot = res.text;
+        syncEditorToState(false);
+        showToast(`✕ * ลบดอกจันตัวเดียวออก ${res.removedCount} จุด (Undo ได้)`);
+    }
+
     // =========================================================================
     // REPETITION & PUNCTUATION RADAR + SUITE HANDOFF
     // =========================================================================
+    const RADAR_CUSTOM_WORDS_KEY = 'peachz_radar_custom_words_v1';
+    const RADAR_MODE_KEY = 'peachz_radar_mode_v1';
+    const DEFAULT_RADAR_CUSTOM_WORDS = ['และ', 'แล้ว', 'ก็', 'ที่'];
+    let radarCustomWords = [...DEFAULT_RADAR_CUSTOM_WORDS];
+    let radarScanMode = 'custom';
+
+    function loadRadarSettings() {
+        try {
+            const rawWords = window.localStorage.getItem(RADAR_CUSTOM_WORDS_KEY);
+            if (rawWords === null) {
+                radarCustomWords = [...DEFAULT_RADAR_CUSTOM_WORDS];
+            } else {
+                const parsed = JSON.parse(rawWords);
+                radarCustomWords = Array.isArray(parsed)
+                    ? Array.from(new Set(parsed.map(w => String(w || '').trim()).filter(Boolean)))
+                    : [...DEFAULT_RADAR_CUSTOM_WORDS];
+            }
+        } catch (e) {
+            radarCustomWords = [...DEFAULT_RADAR_CUSTOM_WORDS];
+        }
+        try {
+            const mode = window.localStorage.getItem(RADAR_MODE_KEY);
+            radarScanMode = mode === 'auto' ? 'auto' : 'custom';
+        } catch (e) {
+            radarScanMode = 'custom';
+        }
+    }
+
+    function saveRadarSettings(skipCloudPush = false) {
+        safeSetItem(RADAR_CUSTOM_WORDS_KEY, JSON.stringify(radarCustomWords));
+        safeSetItem(RADAR_MODE_KEY, radarScanMode);
+        if (!skipCloudPush) scheduleAutoSave();
+    }
+
+    function renderRadarCustomWordsUI() {
+        const isCustom = radarScanMode === 'custom';
+        const activeCls = 'px-2.5 py-1 rounded-xl text-xs font-semibold border transition bg-accent text-white border-accent shadow-sm';
+        const idleCls = 'px-2.5 py-1 rounded-xl text-xs font-semibold border transition bg-surface text-sub border-theme hover:text-main';
+        if (el.btnRadarModeCustom) el.btnRadarModeCustom.className = isCustom ? activeCls : idleCls;
+        if (el.btnRadarModeAuto) el.btnRadarModeAuto.className = !isCustom ? activeCls : idleCls;
+        if (el.radarCustomWordsPanel) el.radarCustomWordsPanel.classList.toggle('hidden', !isCustom);
+        if (!el.radarCustomWordTags) return;
+
+        if (!radarCustomWords.length) {
+            el.radarCustomWordTags.innerHTML = '<span class="text-[11px] text-muted-custom italic">ยังไม่มีคำในฐานข้อมูล — พิมพ์คำที่ต้องการด้านบนแล้วกด "+ เพิ่มคำ"</span>';
+            return;
+        }
+        el.radarCustomWordTags.innerHTML = radarCustomWords.map((w) => `
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface border border-theme text-xs font-medium text-main">
+                <span>${escapeHtml(w)}</span>
+                <button type="button" data-radar-del-word="${escapeHtml(w)}" title="ลบคำนี้ออก"
+                    class="w-4 h-4 rounded-full hover:bg-rose-500/20 text-sub hover:text-rose-500 flex items-center justify-center text-[11px] font-bold transition">×</button>
+            </span>
+        `).join('');
+    }
+
+    function addRadarCustomWordsFromInput() {
+        if (!el.inputRadarAddWord) return;
+        const parts = String(el.inputRadarAddWord.value || '')
+            .split(/[,，\n]+/)
+            .map(s => s.trim())
+            .filter(Boolean);
+        if (!parts.length) {
+            showToast('กรุณาพิมพ์คำที่ต้องการเพิ่มก่อนครับ');
+            return;
+        }
+        const existingLower = new Set(radarCustomWords.map(w => w.toLowerCase()));
+        let added = 0;
+        for (const p of parts) {
+            const low = p.toLowerCase();
+            if (!existingLower.has(low)) {
+                existingLower.add(low);
+                radarCustomWords.push(p);
+                added++;
+            }
+        }
+        el.inputRadarAddWord.value = '';
+        saveRadarSettings();
+        renderRadarCustomWordsUI();
+        renderRadarModalResults();
+        showToast(added > 0 ? `เพิ่มคำเป้าหมายแล้ว ${added} คำ 📌` : 'คำที่พิมพ์มีอยู่ในฐานข้อมูลแล้วครับ');
+    }
+
+    function removeRadarCustomWord(word) {
+        const target = String(word || '').trim().toLowerCase();
+        const before = radarCustomWords.length;
+        radarCustomWords = radarCustomWords.filter(w => w.toLowerCase() !== target);
+        if (radarCustomWords.length === before) return;
+        saveRadarSettings();
+        renderRadarCustomWordsUI();
+        renderRadarModalResults();
+        showToast(`ลบ "${word}" ออกจากรายการสแกนแล้ว`);
+    }
+
+    function setRadarScanMode(mode) {
+        radarScanMode = mode === 'auto' ? 'auto' : 'custom';
+        saveRadarSettings();
+        renderRadarCustomWordsUI();
+        renderRadarModalResults();
+    }
+
     const RADAR_STOP_WORDS = new Set([
         'ที่','และ','ใน','ของ','เป็น','ได้','มี','ไม่','ให้','จะ','ก็','ว่า','กับ','ไป','มา','อยู่',
         'นี้','นั้น','เขา','เธอ','ฉัน','ชั้น','ผม','คุณ','มัน','เรา','พวก','กัน','จาก','ถึง','ด้วย',
@@ -4205,46 +4387,88 @@ ${wrappedText}`
     function scanNovelRadar(text) {
         const raw = String(text || '');
         const tokens = segmentWordsWithOffsets(raw);
-        const contentSeq = [];
-        const wordMap = new Map();
-
-        for (let i = 0; i < tokens.length; i++) {
-            const t = tokens[i];
-            const norm = t.word.trim().toLowerCase();
-            if (norm.length < 2 || /^\d+$/.test(norm)) continue;
-            if (!/[\u0E00-\u0E7F]|[a-z]/i.test(norm)) continue;
-            if (RADAR_STOP_WORDS.has(norm)) continue;
-
-            const cIdx = contentSeq.length;
-            contentSeq.push(norm);
-            let entry = wordMap.get(norm);
-            if (!entry) {
-                entry = { label: t.word.trim(), count: 0, positions: [], seqIndices: [] };
-                wordMap.set(norm, entry);
-            }
-            entry.count++;
-            entry.positions.push({ start: t.start, end: t.end });
-            entry.seqIndices.push(cIdx);
-        }
-
         const repeated = [];
-        for (const entry of wordMap.values()) {
-            let closePairs = 0;
-            for (let j = 1; j < entry.seqIndices.length; j++) {
-                if (entry.seqIndices[j] - entry.seqIndices[j - 1] <= 45) {
-                    closePairs++;
+
+        if (radarScanMode === 'custom') {
+            for (const targetWord of radarCustomWords) {
+                const w = String(targetWord || '').trim();
+                if (!w) continue;
+                const wLower = w.toLowerCase();
+                const wSegs = segmentWordsWithOffsets(w);
+                const positions = [];
+
+                if (wSegs.length <= 1) {
+                    for (let i = 0; i < tokens.length; i++) {
+                        if (tokens[i].word.trim().toLowerCase() === wLower) {
+                            positions.push({ start: tokens[i].start, end: tokens[i].end });
+                        }
+                    }
+                }
+                if (wSegs.length > 1 || positions.length === 0) {
+                    const re = new RegExp(escapeRegex(w), 'gi');
+                    let rm;
+                    while ((rm = re.exec(raw)) !== null) {
+                        positions.push({ start: rm.index, end: rm.index + rm[0].length });
+                    }
+                }
+
+                if (positions.length > 0) {
+                    let closePairs = 0;
+                    for (let j = 1; j < positions.length; j++) {
+                        if (positions[j].start - positions[j - 1].start <= 220) {
+                            closePairs++;
+                        }
+                    }
+                    repeated.push({
+                        word: w,
+                        count: positions.length,
+                        closePairs,
+                        positions
+                    });
                 }
             }
-            if (closePairs >= 1 || entry.count >= 5) {
-                repeated.push({
-                    word: entry.label,
-                    count: entry.count,
-                    closePairs,
-                    positions: entry.positions
-                });
+            repeated.sort((a, b) => (b.closePairs - a.closePairs) || (b.count - a.count) || a.word.localeCompare(b.word, 'th'));
+        } else {
+            const contentSeq = [];
+            const wordMap = new Map();
+
+            for (let i = 0; i < tokens.length; i++) {
+                const t = tokens[i];
+                const norm = t.word.trim().toLowerCase();
+                if (norm.length < 2 || /^\d+$/.test(norm)) continue;
+                if (!/[\u0E00-\u0E7F]|[a-z]/i.test(norm)) continue;
+                if (RADAR_STOP_WORDS.has(norm)) continue;
+
+                const cIdx = contentSeq.length;
+                contentSeq.push(norm);
+                let entry = wordMap.get(norm);
+                if (!entry) {
+                    entry = { label: t.word.trim(), count: 0, positions: [], seqIndices: [] };
+                    wordMap.set(norm, entry);
+                }
+                entry.count++;
+                entry.positions.push({ start: t.start, end: t.end });
+                entry.seqIndices.push(cIdx);
             }
+
+            for (const entry of wordMap.values()) {
+                let closePairs = 0;
+                for (let j = 1; j < entry.seqIndices.length; j++) {
+                    if (entry.seqIndices[j] - entry.seqIndices[j - 1] <= 45) {
+                        closePairs++;
+                    }
+                }
+                if (closePairs >= 1 || entry.count >= 5) {
+                    repeated.push({
+                        word: entry.label,
+                        count: entry.count,
+                        closePairs,
+                        positions: entry.positions
+                    });
+                }
+            }
+            repeated.sort((a, b) => (b.closePairs - a.closePairs) || (b.count - a.count) || a.word.localeCompare(b.word, 'th'));
         }
-        repeated.sort((a, b) => (b.closePairs - a.closePairs) || (b.count - a.count) || a.word.localeCompare(b.word, 'th'));
 
         const punctIssues = [];
         let maiYamokCount = 0;
@@ -4344,6 +4568,7 @@ ${wrappedText}`
     }
 
     function renderRadarModalResults() {
+        renderRadarCustomWordsUI();
         const text = el.novelEditor.value || '';
         radarScanData = scanNovelRadar(text);
         radarOccCursor = new Map();
@@ -4358,7 +4583,13 @@ ${wrappedText}`
         el.btnRadarFixMaiYamok.classList.toggle('hidden', maiYamokCount === 0);
 
         if (repeated.length === 0) {
-            el.radarRepetitionList.innerHTML = `<div class="p-3 rounded-2xl bg-surface-variant text-sub text-center">✅ ยังไม่พบคำซ้ำถี่ผิดปกติในตอนนี้</div>`;
+            let emptyMsg = '✅ ยังไม่พบคำซ้ำถี่ผิดปกติในตอนนี้';
+            if (radarScanMode === 'custom') {
+                emptyMsg = radarCustomWords.length === 0
+                    ? 'ยังไม่ได้กำหนดคำที่ต้องการสแกน — เพิ่มคำด้านบนได้เลย'
+                    : '✅ ไม่พบคำตามรายการที่กำหนดในตอนนี้';
+            }
+            el.radarRepetitionList.innerHTML = `<div class="p-3 rounded-2xl bg-surface-variant text-sub text-center">${emptyMsg}</div>`;
         } else {
             el.radarRepetitionList.innerHTML = repeated.map((item, idx) => `
                 <div class="p-3 rounded-2xl bg-surface-variant border border-theme flex items-center justify-between gap-2">
@@ -5541,6 +5772,7 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
 
         el.btnBottomFormat.addEventListener('click', () => openModal(el.formatSheetBackdrop));
         if (el.btnStripCleanAi) el.btnStripCleanAi.addEventListener('click', () => runOneClickCleanAi(false));
+        if (el.btnStripRemoveSingleAsterisk) el.btnStripRemoveSingleAsterisk.addEventListener('click', runRemoveSingleAsterisks);
         if (el.btnStripRadar) el.btnStripRadar.addEventListener('click', openRadarModal);
         if (el.btnPeachzSuiteMenu && el.peachzSuiteDropdown) {
             el.btnPeachzSuiteMenu.addEventListener('click', (e) => {
@@ -5559,6 +5791,24 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
         if (el.btnCloseRadarModal) el.btnCloseRadarModal.addEventListener('click', () => closeModal(el.radarModalBackdrop));
         if (el.radarModalBackdrop) el.radarModalBackdrop.addEventListener('click', (e) => { if (e.target === el.radarModalBackdrop) closeModal(el.radarModalBackdrop); });
         if (el.btnRadarRescan) el.btnRadarRescan.addEventListener('click', renderRadarModalResults);
+        if (el.btnRadarModeCustom) el.btnRadarModeCustom.addEventListener('click', () => setRadarScanMode('custom'));
+        if (el.btnRadarModeAuto) el.btnRadarModeAuto.addEventListener('click', () => setRadarScanMode('auto'));
+        if (el.btnRadarAddWord) el.btnRadarAddWord.addEventListener('click', addRadarCustomWordsFromInput);
+        if (el.inputRadarAddWord) {
+            el.inputRadarAddWord.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addRadarCustomWordsFromInput();
+                }
+            });
+        }
+        if (el.radarCustomWordTags) {
+            el.radarCustomWordTags.addEventListener('click', (e) => {
+                const delBtn = e.target.closest('[data-radar-del-word]');
+                if (!delBtn) return;
+                removeRadarCustomWord(delBtn.getAttribute('data-radar-del-word') || '');
+            });
+        }
         if (el.btnRadarFixMaiYamok) el.btnRadarFixMaiYamok.addEventListener('click', fixAllMaiYamokSpacing);
         if (el.radarRepetitionList) {
             el.radarRepetitionList.addEventListener('click', (e) => {
@@ -5830,6 +6080,7 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
     function init() {
         applyTheme(safeGetItem(THEME_KEY, 'peach'));
         loadIgnoreList();
+        loadRadarSettings();
         loadApiKeys();
         loadCachedModels();
         loadState();
@@ -5856,7 +6107,9 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
                 const payload = Object.assign({}, state, {
                     __cloudExtras: {
                         savedApiKeys: Array.isArray(savedApiKeys) ? savedApiKeys : [],
-                        activeApiKeyId: activeApiKeyId || ''
+                        activeApiKeyId: activeApiKeyId || '',
+                        radarCustomWords: Array.isArray(radarCustomWords) ? radarCustomWords : [...DEFAULT_RADAR_CUSTOM_WORDS],
+                        radarScanMode: radarScanMode === 'auto' ? 'auto' : 'custom'
                     }
                 });
                 return {
@@ -5869,13 +6122,23 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
                     const parsed = JSON.parse(stateJson);
                     if (!parsed || !Array.isArray(parsed.novels)) return false;
 
-                    if (parsed.__cloudExtras && Array.isArray(parsed.__cloudExtras.savedApiKeys)) {
-                        savedApiKeys = parsed.__cloudExtras.savedApiKeys.filter(k => k && k.id && k.key);
-                        activeApiKeyId = parsed.__cloudExtras.activeApiKeyId || '';
-                        if (!savedApiKeys.some(k => k.id === activeApiKeyId)) {
-                            activeApiKeyId = savedApiKeys[0] ? savedApiKeys[0].id : '';
+                    if (parsed.__cloudExtras) {
+                        if (Array.isArray(parsed.__cloudExtras.savedApiKeys)) {
+                            savedApiKeys = parsed.__cloudExtras.savedApiKeys.filter(k => k && k.id && k.key);
+                            activeApiKeyId = parsed.__cloudExtras.activeApiKeyId || '';
+                            if (!savedApiKeys.some(k => k.id === activeApiKeyId)) {
+                                activeApiKeyId = savedApiKeys[0] ? savedApiKeys[0].id : '';
+                            }
+                            saveApiKeys(true);
                         }
-                        saveApiKeys(true);
+                        if (Array.isArray(parsed.__cloudExtras.radarCustomWords)) {
+                            radarCustomWords = Array.from(new Set(parsed.__cloudExtras.radarCustomWords.map(w => String(w || '').trim()).filter(Boolean)));
+                            radarScanMode = parsed.__cloudExtras.radarScanMode === 'auto' ? 'auto' : 'custom';
+                            saveRadarSettings(true);
+                            if (el.radarModalBackdrop && !el.radarModalBackdrop.classList.contains('hidden')) {
+                                renderRadarModalResults();
+                            }
+                        }
                     }
                     delete parsed.__cloudExtras;
 
