@@ -334,6 +334,51 @@
         .font-noto-serif { font-family: 'Noto Serif Thai', 'Sarabun', 'Georgia', serif; }
         .font-prompt { font-family: 'Prompt', 'Noto Sans Thai', 'Tahoma', sans-serif; }
 
+        #editorHighlightWrap {
+            position: relative;
+        }
+        #editorHighlightBackdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            color: transparent;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            border: 0;
+            z-index: 0;
+            user-select: none;
+        }
+        #novelEditor {
+            position: relative;
+            z-index: 1;
+            background: transparent !important;
+        }
+        .radar-hl-mark {
+            color: transparent;
+            background-color: rgba(250, 204, 21, 0.45);
+            border-radius: 3px;
+            box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.50);
+        }
+        [data-theme="dark"] .radar-hl-mark {
+            background-color: rgba(250, 204, 21, 0.30);
+            box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.45);
+        }
+        .radar-hl-mark-active {
+            background-color: rgba(249, 115, 22, 0.58) !important;
+            box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.85) !important;
+        }
+        [data-theme="dark"] .radar-hl-mark-active {
+            background-color: rgba(251, 146, 60, 0.48) !important;
+            box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.90) !important;
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -918,11 +963,26 @@
                 <div id="editorWorkspaceCard" class="max-w-3xl mx-auto bg-editor rounded-3xl border border-theme shadow-sm min-h-full flex flex-col p-4 sm:p-7">
                     <input id="editorChapterTitleInput" type="text" placeholder="ตั้งชื่อตอนนิยาย..."
                         class="w-full bg-transparent font-sarabun font-bold text-lg sm:text-2xl text-main placeholder:text-muted-custom focus:outline-none pb-2.5 mb-3 border-b border-theme">
-                    <textarea id="novelEditor"
-                        placeholder="เริ่มต้นเขียนนิยายของคุณที่นี่... ระบบจะนับคำภาษาไทย (ไม่นับไม้ยมก) และประมาณการยอด ~RAW ให้อัตโนมัติ"
-                        spellcheck="false"
-                        class="w-full flex-1 bg-transparent font-sarabun text-main placeholder:text-muted-custom focus:outline-none resize-none min-h-[45vh]"
-                        style="font-size: 18px; line-height: 1.8;"></textarea>
+                    <div id="radarHighlightBar" class="hidden mb-2.5 px-3 py-2 rounded-2xl bg-amber-500/12 border border-amber-500/35 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="font-bold text-amber-800 dark:text-amber-300 truncate" id="radarHighlightLabel">🔍 กำลังไฮไลต์</span>
+                            <span id="radarHighlightCount" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-900 dark:text-amber-200 font-semibold shrink-0">0 จุด</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button id="btnRadarHlPrev" type="button" class="px-2.5 py-1 rounded-xl bg-surface border border-theme text-main hover:bg-accent-soft font-semibold transition">‹ ก่อนหน้า</button>
+                            <button id="btnRadarHlNext" type="button" class="px-2.5 py-1 rounded-xl bg-surface border border-theme text-main hover:bg-accent-soft font-semibold transition">ถัดไป ›</button>
+                            <button id="btnRadarHlBackToModal" type="button" class="px-2.5 py-1 rounded-xl bg-surface border border-theme text-main hover:bg-accent-soft font-semibold transition">🔍 คำอื่น</button>
+                            <button id="btnRadarHlClear" type="button" class="px-2.5 py-1 rounded-xl bg-rose-500/15 text-rose-600 dark:text-rose-300 hover:bg-rose-500/25 font-semibold transition">✕ ปิดไฮไลต์</button>
+                        </div>
+                    </div>
+                    <div id="editorHighlightWrap" class="flex-1 flex flex-col min-h-[45vh]">
+                        <div id="editorHighlightBackdrop" aria-hidden="true" class="font-sarabun"></div>
+                        <textarea id="novelEditor"
+                            placeholder="เริ่มต้นเขียนนิยายของคุณที่นี่... ระบบจะนับคำภาษาไทย (ไม่นับไม้ยมก) และประมาณการยอด ~RAW ให้อัตโนมัติ"
+                            spellcheck="false"
+                            class="w-full flex-1 bg-transparent font-sarabun text-main placeholder:text-muted-custom focus:outline-none resize-none min-h-[45vh]"
+                            style="font-size: 18px; line-height: 1.8;"></textarea>
+                    </div>
                 </div>
             </div>
 
@@ -1410,7 +1470,7 @@
 
             <div class="space-y-2">
                 <div class="flex items-center justify-between gap-2">
-                    <h4 class="font-bold text-main">🔁 คำที่อาจซ้ำถี่เกินไป (กดเพื่อกระโดดตรวจจุดซ้ำ)</h4>
+                    <h4 class="font-bold text-main">🔁 คำที่พบ (กด &quot;แสดงคำนี้ทั้งหมด&quot; เพื่อไฮไลต์ทุกจุดในหน้าเขียน)</h4>
                 </div>
                 <div id="radarRepetitionList" class="space-y-2"></div>
             </div>
@@ -1752,6 +1812,15 @@ document.addEventListener('DOMContentLoaded', function () {
         topChapterTitleInput: document.getElementById('topChapterTitleInput'),
         editorChapterTitleInput: document.getElementById('editorChapterTitleInput'),
         novelEditor: document.getElementById('novelEditor'),
+        editorHighlightWrap: document.getElementById('editorHighlightWrap'),
+        editorHighlightBackdrop: document.getElementById('editorHighlightBackdrop'),
+        radarHighlightBar: document.getElementById('radarHighlightBar'),
+        radarHighlightLabel: document.getElementById('radarHighlightLabel'),
+        radarHighlightCount: document.getElementById('radarHighlightCount'),
+        btnRadarHlPrev: document.getElementById('btnRadarHlPrev'),
+        btnRadarHlNext: document.getElementById('btnRadarHlNext'),
+        btnRadarHlBackToModal: document.getElementById('btnRadarHlBackToModal'),
+        btnRadarHlClear: document.getElementById('btnRadarHlClear'),
         emptyLibraryState: document.getElementById('emptyLibraryState'),
         btnEmptyCreateNovel: document.getElementById('btnEmptyCreateNovel'),
         inputEmptyImportJson: document.getElementById('inputEmptyImportJson'),
@@ -3401,11 +3470,13 @@ ${wrappedText}`
         el.novelEditor.style.lineHeight = String(lh);
         el.fontSizeBadge.textContent = String(fs);
         el.lineHeightBadge.textContent = lh + 'x';
+        if (typeof syncRadarBackdropMetrics === 'function') syncRadarBackdropMetrics();
     }
 
     function loadActiveChapterIntoEditor() {
         const ch = getActiveChapter();
         if (!ch) return;
+        if (typeof clearRadarHighlight === 'function') clearRadarHighlight();
         el.topChapterTitleInput.value = ch.title;
         el.editorChapterTitleInput.value = ch.title;
         el.novelEditor.value = ch.content;
@@ -3422,6 +3493,7 @@ ${wrappedText}`
             lastSnapshot = newVal;
         }
         ch.content = newVal;
+        if (typeof refreshActiveRadarHighlight === 'function') refreshActiveRadarHighlight();
         scheduleAutoSave();
 
         clearTimeout(statsTimer);
@@ -4384,6 +4456,31 @@ ${wrappedText}`
         return tokens;
     }
 
+    function findRadarWordPositions(raw, word, mode = 'custom', precomputedTokens = null) {
+        const w = String(word || '').trim();
+        if (!raw || !w) return [];
+        const tokens = precomputedTokens || segmentWordsWithOffsets(raw);
+        const wLower = w.toLowerCase();
+        const wSegs = segmentWordsWithOffsets(w);
+        const positions = [];
+
+        if (wSegs.length <= 1) {
+            for (let i = 0; i < tokens.length; i++) {
+                if (tokens[i].word.trim().toLowerCase() === wLower) {
+                    positions.push({ start: tokens[i].start, end: tokens[i].end });
+                }
+            }
+        }
+        if (mode === 'custom' && (wSegs.length > 1 || positions.length === 0)) {
+            const re = new RegExp(escapeRegex(w), 'gi');
+            let rm;
+            while ((rm = re.exec(raw)) !== null) {
+                positions.push({ start: rm.index, end: rm.index + rm[0].length });
+            }
+        }
+        return positions;
+    }
+
     function scanNovelRadar(text) {
         const raw = String(text || '');
         const tokens = segmentWordsWithOffsets(raw);
@@ -4393,24 +4490,7 @@ ${wrappedText}`
             for (const targetWord of radarCustomWords) {
                 const w = String(targetWord || '').trim();
                 if (!w) continue;
-                const wLower = w.toLowerCase();
-                const wSegs = segmentWordsWithOffsets(w);
-                const positions = [];
-
-                if (wSegs.length <= 1) {
-                    for (let i = 0; i < tokens.length; i++) {
-                        if (tokens[i].word.trim().toLowerCase() === wLower) {
-                            positions.push({ start: tokens[i].start, end: tokens[i].end });
-                        }
-                    }
-                }
-                if (wSegs.length > 1 || positions.length === 0) {
-                    const re = new RegExp(escapeRegex(w), 'gi');
-                    let rm;
-                    while ((rm = re.exec(raw)) !== null) {
-                        positions.push({ start: rm.index, end: rm.index + rm[0].length });
-                    }
-                }
+                const positions = findRadarWordPositions(raw, w, 'custom', tokens);
 
                 if (positions.length > 0) {
                     let closePairs = 0;
@@ -4601,7 +4681,7 @@ ${wrappedText}`
                         </div>
                     </div>
                     <button type="button" data-radar-rep="${idx}" class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs font-semibold shrink-0 hover:opacity-95 transition">
-                        ไปจุดถัดไป →
+                        ✨ แสดงคำนี้ทั้งหมด
                     </button>
                 </div>
             `).join('');
@@ -4622,6 +4702,135 @@ ${wrappedText}`
                 </div>
             `).join('');
         }
+    }
+
+    let activeRadarHighlight = { word: '', mode: 'custom', positions: [], activeIndex: -1 };
+
+    function syncRadarBackdropMetrics() {
+        const bd = el.editorHighlightBackdrop;
+        const ta = el.novelEditor;
+        if (!bd || !ta) return;
+        const cs = window.getComputedStyle(ta);
+        bd.style.width = ta.clientWidth + 'px';
+        bd.style.height = ta.clientHeight + 'px';
+        bd.style.fontFamily = cs.fontFamily;
+        bd.style.fontSize = cs.fontSize;
+        bd.style.lineHeight = cs.lineHeight;
+        bd.style.letterSpacing = cs.letterSpacing;
+        bd.scrollTop = ta.scrollTop;
+        bd.scrollLeft = ta.scrollLeft;
+    }
+
+    function renderRadarHighlightBackdrop() {
+        const bd = el.editorHighlightBackdrop;
+        if (!bd) return;
+        const word = activeRadarHighlight.word;
+        if (!word) {
+            bd.innerHTML = '';
+            if (el.radarHighlightBar) el.radarHighlightBar.classList.add('hidden');
+            return;
+        }
+        const text = el.novelEditor.value || '';
+        const positions = activeRadarHighlight.positions;
+        let html = '';
+        let cursor = 0;
+        for (let i = 0; i < positions.length; i++) {
+            const p = positions[i];
+            if (p.start < cursor) continue;
+            html += escapeHtml(text.slice(cursor, p.start));
+            const activeCls = i === activeRadarHighlight.activeIndex ? ' radar-hl-mark-active' : '';
+            html += `<mark class="radar-hl-mark${activeCls}" data-radar-mark-idx="${i}">${escapeHtml(text.slice(p.start, p.end))}</mark>`;
+            cursor = p.end;
+        }
+        html += escapeHtml(text.slice(cursor)) + '\n';
+        bd.innerHTML = html;
+
+        if (el.radarHighlightLabel) {
+            el.radarHighlightLabel.textContent = `🔍 กำลังไฮไลต์ "${word}" ทุกจุด`;
+        }
+        if (el.radarHighlightCount) {
+            if (positions.length === 0) {
+                el.radarHighlightCount.textContent = '0 จุด (ไม่เหลือแล้ว ✓)';
+            } else if (activeRadarHighlight.activeIndex >= 0 && activeRadarHighlight.activeIndex < positions.length) {
+                el.radarHighlightCount.textContent = `จุดที่ ${activeRadarHighlight.activeIndex + 1} / ${positions.length}`;
+            } else {
+                el.radarHighlightCount.textContent = `พบ ${positions.length} จุด`;
+            }
+        }
+        if (el.radarHighlightBar) el.radarHighlightBar.classList.remove('hidden');
+        syncRadarBackdropMetrics();
+    }
+
+    function refreshActiveRadarHighlight() {
+        if (!activeRadarHighlight.word) return;
+        const text = el.novelEditor.value || '';
+        activeRadarHighlight.positions = findRadarWordPositions(text, activeRadarHighlight.word, activeRadarHighlight.mode);
+        if (activeRadarHighlight.positions.length === 0) {
+            activeRadarHighlight.activeIndex = -1;
+        } else if (activeRadarHighlight.activeIndex >= activeRadarHighlight.positions.length) {
+            activeRadarHighlight.activeIndex = activeRadarHighlight.positions.length - 1;
+        }
+        renderRadarHighlightBackdrop();
+    }
+
+    function scrollToRadarHighlightOccurrence(index, { selectInEditor = true } = {}) {
+        const positions = activeRadarHighlight.positions;
+        if (!positions.length) return;
+        const normIdx = ((index % positions.length) + positions.length) % positions.length;
+        activeRadarHighlight.activeIndex = normIdx;
+        renderRadarHighlightBackdrop();
+
+        const pos = positions[normIdx];
+        const markEl = el.editorHighlightBackdrop?.querySelector(`[data-radar-mark-idx="${normIdx}"]`);
+        const ta = el.novelEditor;
+        if (markEl && ta) {
+            if (ta.scrollHeight > ta.clientHeight + 4) {
+                const targetTop = Math.max(0, markEl.offsetTop - Math.floor(ta.clientHeight * 0.35));
+                ta.scrollTop = targetTop;
+                syncRadarBackdropMetrics();
+            } else {
+                markEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else {
+            scrollEditorToRange(pos.start, pos.end);
+        }
+        if (selectInEditor && ta) {
+            try { ta.focus({ preventScroll: true }); } catch (_) { ta.focus(); }
+            try { ta.setSelectionRange(pos.start, pos.end); } catch (_) {}
+        }
+    }
+
+    function activateRadarWordHighlight(word, mode = 'custom') {
+        const w = String(word || '').trim();
+        if (!w) return;
+        activeRadarHighlight.word = w;
+        activeRadarHighlight.mode = mode === 'auto' ? 'auto' : 'custom';
+        activeRadarHighlight.positions = findRadarWordPositions(el.novelEditor.value || '', w, activeRadarHighlight.mode);
+        activeRadarHighlight.activeIndex = activeRadarHighlight.positions.length ? 0 : -1;
+        closeModal(el.radarModalBackdrop);
+        renderRadarHighlightBackdrop();
+        if (activeRadarHighlight.positions.length > 0) {
+            scrollToRadarHighlightOccurrence(0, { selectInEditor: true });
+            showToast(`ไฮไลต์ "${w}" ทั้งหมด ${activeRadarHighlight.positions.length} จุดแล้ว — เลือกแก้จุดที่ต้องการได้เลย`);
+        } else {
+            showToast(`ไม่พบคำว่า "${w}" ในตอนนี้`);
+        }
+    }
+
+    function stepRadarHighlight(delta) {
+        if (!activeRadarHighlight.positions.length) {
+            showToast('ไม่เหลือคำนี้ให้กระโดดแล้ว ✓');
+            return;
+        }
+        const cur = activeRadarHighlight.activeIndex < 0 ? 0 : activeRadarHighlight.activeIndex;
+        scrollToRadarHighlightOccurrence(cur + delta, { selectInEditor: true });
+    }
+
+    function clearRadarHighlight() {
+        if (!activeRadarHighlight.word && (!el.radarHighlightBar || el.radarHighlightBar.classList.contains('hidden'))) return;
+        activeRadarHighlight = { word: '', mode: 'custom', positions: [], activeIndex: -1 };
+        if (el.editorHighlightBackdrop) el.editorHighlightBackdrop.innerHTML = '';
+        if (el.radarHighlightBar) el.radarHighlightBar.classList.add('hidden');
     }
 
     function openRadarModal() {
@@ -5816,13 +6025,19 @@ p { margin: 0 0 0.5em 0; ${ps.indent ? 'text-indent: 1.8em;' : ''} ${ps.justify 
                 if (!btn) return;
                 const item = radarScanData.repeated[Number(btn.getAttribute('data-radar-rep'))];
                 if (!item || !item.positions.length) return;
-                const cur = radarOccCursor.get(item.word) || 0;
-                const pos = item.positions[cur % item.positions.length];
-                radarOccCursor.set(item.word, (cur + 1) % item.positions.length);
-                if (window.innerWidth < 768) closeModal(el.radarModalBackdrop);
-                scrollEditorToRange(pos.start, pos.end);
-                showToast(`"${item.word}" — จุดที่ ${(cur % item.positions.length) + 1}/${item.positions.length}`);
+                activateRadarWordHighlight(item.word, radarScanMode);
             });
+        }
+        if (el.btnRadarHlPrev) el.btnRadarHlPrev.addEventListener('click', () => stepRadarHighlight(-1));
+        if (el.btnRadarHlNext) el.btnRadarHlNext.addEventListener('click', () => stepRadarHighlight(1));
+        if (el.btnRadarHlBackToModal) el.btnRadarHlBackToModal.addEventListener('click', openRadarModal);
+        if (el.btnRadarHlClear) el.btnRadarHlClear.addEventListener('click', clearRadarHighlight);
+        if (el.novelEditor) {
+            el.novelEditor.addEventListener('scroll', syncRadarBackdropMetrics);
+            if (typeof ResizeObserver === 'function') {
+                new ResizeObserver(() => syncRadarBackdropMetrics()).observe(el.novelEditor);
+            }
+            window.addEventListener('resize', syncRadarBackdropMetrics);
         }
         if (el.radarPunctuationList) {
             el.radarPunctuationList.addEventListener('click', (e) => {
